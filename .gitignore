@@ -52,3 +52,13 @@ ios/Flutter/APIKeys.xcconfig
 
 # ignore web native keys
 web/env.js
+# Firebase Configuration Files
+google-services.json
+GoogleService-Info.plist
+firebase_app_id_file.json
+# Markdown documentation (keep README.md)
+*.md
+!README.md
+
+# Ignore Firebase auto-generated options
+lib/firebase_options.dart

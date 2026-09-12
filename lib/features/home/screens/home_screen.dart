@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:google_map_one_for_all/features/map_mastery/views/map_mastery_screen.dart';
 
 import '../../CoreMapFeatures/screens/basic_map.dart';
 import '../../CustomMarkers/Screens/markers_screen.dart';
@@ -47,6 +48,11 @@ class HomeScreen extends StatelessWidget {
             'Launch native Google Maps / Apple Maps external navigation',
         'page': const NavigationLauncherScreen(),
       },
+      {
+        'title': '7. Map Mastery',
+        'subtitle': 'Launch Real Google Map Replication',
+        'page': const MapMasteryScreen(),
+      },
     ];
 
     return Scaffold(
@@ -57,7 +63,7 @@ class HomeScreen extends StatelessWidget {
       body: ListView.separated(
         padding: const EdgeInsets.all(16),
         itemCount: modules.length,
-        separatorBuilder: (_, __) => const Divider(),
+        separatorBuilder: (_, _) => const Divider(),
         itemBuilder: (context, index) {
           final item = modules[index];
           return ListTile(

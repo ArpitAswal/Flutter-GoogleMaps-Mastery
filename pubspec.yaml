@@ -16,6 +16,13 @@ dependencies:
   flutter_polyline_points: ^3.1.0
   url_launcher: ^6.3.2
   custom_info_window: ^1.0.1
+  # Map Mastery module dependencies
+  flutter_bloc: ^9.1.0
+  firebase_core: ^3.8.0
+  cloud_firestore: ^5.5.0
+  firebase_auth: ^5.3.0
+  shared_preferences: ^2.3.3
+  uuid: ^4.5.1
 
 dev_dependencies:
   flutter_lints: ^6.0.0

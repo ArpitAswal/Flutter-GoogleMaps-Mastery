@@ -2,7 +2,7 @@
 
 > A fully annotated Flutter project implementing **every core concept** of the `google_maps_flutter` package and Google Maps Web Services APIs. Built as an interactive educational hub to teach you exactly how to build advanced location-based apps.
 
-📱 **Cross-Platform Ready**: This project perfectly supports and is optimized for **Android**, **iOS**, and **Chrome (Web)**. You can easily learn and explore the concepts by running it directly on any of these platforms!
+📱 **Cross-Platform Ready**: This project perfectly supports and is optimized for **Android** and **iOS**. You can easily learn and explore the concepts by running it directly on any of these platforms!
 
 ---
 
@@ -18,6 +18,7 @@ This project teaches you **6 advanced Google Maps concepts** and how to tie them
 | 4 | Drawing Routes & Polylines | `features/RoutesPolyline/screens/route_polyline.dart` |
 | 5 | Live Location Tracking | `features/LiveTracking/screens/live_tracking_location.dart` |
 | 6 | Turn-by-Turn Navigation | `features/NavigationTurn/screens/navigation_screen.dart` |
+| 7 | Map Mastery (Production Module) | `features/map_mastery/views/map_mastery_screen.dart` |
 
 ---
 
@@ -37,7 +38,8 @@ lib/
 │   ├── PlaceSearchGeocoding/          # 🔍 Autocomplete API and Lat/Lng translation
 │   ├── RoutesPolyline/                # 🛣️ Directions API and Polyline drawing
 │   ├── LiveTracking/                  # 🚶‍♂️ Real-time GPS stream and marker updating
-│   └── NavigationTurn/                # 🧭 Step-by-step navigation logic
+│   ├── NavigationTurn/                # 🧭 Step-by-step navigation logic
+│   └── map_mastery/                   # 🚀 Production-ready map implementation (MVVM/Cubit)
 ```
 
 ---
@@ -66,17 +68,22 @@ Create a new file at `ios/Flutter/APIKeys.xcconfig` and add:
 GOOGLE_MAPS_IOS_API_KEY=your_ios_key_here
 ```
 
-**3. For Web / Dart Services**
-- Create a `.env` file in the root of the project and add:
-  ```text
-  GOOGLE_MAPS_WEB_API_KEY=your_web_and_services_key_here
-  ```
-- Create `web/env.js` and add:
-  ```javascript
-  window.GOOGLE_MAPS_WEB_API_KEY = "your_web_and_services_key_here";
-  ```
+**3. For Dart REST Services (Directions, Places API)**
+Create a `.env` file in the root of the project and add:
+```text
+GOOGLE_MAPS_API_KEY=your_rest_api_key_here
+```
 
-*(Note: All three of these files are already in `.gitignore` so they remain safely on your machine).*
+**4. For Firebase (Map Mastery Module)**
+This project uses Firebase for the Map Mastery live tracking module. Since `lib/firebase_options.dart` is intentionally excluded from version control, you must generate your own by connecting your Firebase project:
+```bash
+# Install the FlutterFire CLI
+dart pub global activate flutterfire_cli
+
+# Configure your project (this generates lib/firebase_options.dart)
+flutterfire configure
+```
+*Note: The app will fail to compile if `lib/firebase_options.dart` is missing, as `main.dart` requires it for `Firebase.initializeApp()`.*
 
 ### Run the App
 
@@ -87,7 +94,7 @@ cd google_map_one_for_all
 # Install dependencies
 flutter pub get
 
-# Run the app (Works on iOS, Android, and Web)
+# Run the app (Works on iOS and Android)
 flutter run
 ```
 
@@ -112,6 +119,20 @@ Uses the `geolocator` package to request hardware GPS permissions, subscribe to 
 
 ### 6. Navigation
 Combines Polylines, Live Tracking, and Camera updates to simulate a real turn-by-turn navigation experience, keeping the user's "puck" centered on the route.
+
+### 7. Map Mastery (Production Module)
+A production-ready MVVM/Cubit-based module demonstrating advanced patterns: resilient location permission handling, multi-modal concurrent routing (Driving, Transit, Walking, Two-Wheeler), debounced place autocomplete, and real-time live driver tracking using Firestore with an anonymous authentication architecture.
+
+---
+
+## 🚀 Map Mastery — Production Module
+
+The existing learning demos remain intact. We are currently implementing a new Cubit/MVVM-based Map Mastery module intended for production-level stability. It covers permission recovery, traffic and POIs, debounced place search, multi-modal routing, Firestore driver tracking, and remote trip viewing for Android and iOS.
+
+**Status: Phase 1 Completed** ✅
+- Firebase and MVVM project structure initialized.
+- Immutable models and Repository/DataSource stubs created.
+- BLoC/Cubit state management strictly enforcing reactive UI (no `setState`).
 
 ---
 
@@ -149,3 +170,4 @@ This repository is provided for portfolio and evaluation purposes only.
 Commercial use, redistribution, modification, or reproduction without written permission is prohibited.
 
 Developed with ❤️ by **Arpit Aswal**.
+
