@@ -81,20 +81,20 @@ class GoogleMapsRemoteDataSource {
 
   // ── Reverse Geocoding ─────────────────────────────────────────────────────
 
-  Future<String> reverseGeocode(LatLng point) async {
+  Future<String> reverseGeocodePlaceId(LatLng point) async {
     final uri = Uri.parse(
       '$_base/geocode/json'
       '?latlng=${point.latitude},${point.longitude}'
       '&key=$_apiKey',
     );
     final body = await _get(uri, 'reverseGeocode');
-    if (body['status'] == 'ZERO_RESULTS') return 'Address not found';
+    if (body['status'] == 'ZERO_RESULTS') return '';
     _assertStatus(body, 'reverseGeocode');
     final results = body['results'] as List<dynamic>;
-    if (results.isEmpty) return 'Address not found';
-    return (results.first as Map<String, dynamic>)['formatted_address']
-            as String? ??
-        'Address not found';
+    if (results.isEmpty) return '';
+    // Instead of just the formatted address, we extract the Google Place ID
+    // which allows us to look up rich POI information (ratings, phone, etc.)
+    return (results.first as Map<String, dynamic>)['place_id'] as String? ?? '';
   }
 
   // ── Private helpers ───────────────────────────────────────────────────────

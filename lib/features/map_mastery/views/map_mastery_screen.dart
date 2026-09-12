@@ -13,6 +13,9 @@ import '../logic/map_core/map_core_cubit.dart';
 import '../logic/map_core/map_core_state.dart';
 import '../logic/search_places/search_places_cubit.dart';
 import 'components/map_view_canvas.dart';
+import 'components/map_search_bar_header.dart';
+import 'components/search_autocomplete_overlay.dart';
+import 'components/place_detail_bottom_sheet.dart';
 
 class MapMasteryScreen extends StatelessWidget {
   const MapMasteryScreen({super.key});
@@ -71,6 +74,7 @@ class _MapMasteryBody extends StatefulWidget {
 
 class _MapMasteryBodyState extends State<_MapMasteryBody> with WidgetsBindingObserver {
   bool _wentToSettings = false;
+  bool _isBottomSheetOpen = false;
 
   @override
   void initState() {
@@ -99,26 +103,48 @@ class _MapMasteryBodyState extends State<_MapMasteryBody> with WidgetsBindingObs
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<MapCoreCubit, MapCoreState>(
+    // We use a BlocConsumer here to handle navigation side-effects (like opening bottom sheets)
+    // exclusively in the listener, while the builder manages the actual UI rendering.
+    return BlocConsumer<MapCoreCubit, MapCoreState>(
+      listenWhen: (previous, current) => previous.focalPlace != current.focalPlace,
+      listener: (context, state) {
+        // If the cubit emits a new focal place, open the details bottom sheet.
+        if (state.focalPlace != null) {
+          if (_isBottomSheetOpen) {
+             Navigator.of(context).pop();
+          }
+          _isBottomSheetOpen = true;
+          // Present the BottomSheet natively, avoiding messy internal Stack states.
+          showModalBottomSheet(
+            context: context,
+            isScrollControlled: true,
+            barrierColor: Colors.transparent,
+            builder: (_) => PlaceDetailBottomSheet(place: state.focalPlace!),
+          ).whenComplete(() {
+            if (!context.mounted) return;
+            _isBottomSheetOpen = false;
+            if (context.read<MapCoreCubit>().state.focalPlace != null) {
+              context.read<MapCoreCubit>().clearFocalPlace();
+            }
+          });
+        } else {
+          // If the focal place is cleared programmatically (e.g. by tapping the map canvas),
+          // dismiss the bottom sheet by popping the navigation stack.
+          if (_isBottomSheetOpen) {
+            Navigator.of(context).pop();
+            _isBottomSheetOpen = false;
+          }
+        }
+      },
       builder: (context, state) {
         if (state.status == MapCoreStatus.ready) {
-          return Scaffold(
+          return const Scaffold(
+            resizeToAvoidBottomInset: false,
             body: Stack(
               children: [
-                const MapViewCanvas(),
-                Positioned(
-                  top: 16,
-                  left: 16,
-                  child: SafeArea(
-                    child: CircleAvatar(
-                      backgroundColor: Colors.white,
-                      child: IconButton(
-                        icon: const Icon(Icons.arrow_back, color: Colors.black),
-                        onPressed: () => Navigator.of(context).pop(),
-                      ),
-                    ),
-                  ),
-                ),
+                MapViewCanvas(),
+                MapSearchBarHeader(),
+                SearchAutocompleteOverlay(),
               ],
             ),
           );
@@ -164,7 +190,7 @@ class _MapMasteryBodyState extends State<_MapMasteryBody> with WidgetsBindingObs
                 onAction: () =>
                     context.read<MapCoreCubit>().retryInitialization(),
               ),
-            MapCoreStatus.ready => const SizedBox.shrink(), // Handled above
+            MapCoreStatus.ready => const SizedBox.shrink(),
           },
         );
       },

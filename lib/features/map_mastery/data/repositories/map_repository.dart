@@ -51,9 +51,11 @@ class MapRepository {
     }
   }
 
-  Future<MapResult<String>> reverseGeocode(LatLng point) async {
+  Future<MapResult<String>> reverseGeocodePlaceId(LatLng point) async {
     try {
-      return MapSuccess(await _dataSource.reverseGeocode(point));
+      final placeId = await _dataSource.reverseGeocodePlaceId(point);
+      if (placeId.isEmpty) return const MapFailure('No place found');
+      return MapSuccess(placeId);
     } catch (e) {
       return MapFailure(_sanitise(e));
     }
