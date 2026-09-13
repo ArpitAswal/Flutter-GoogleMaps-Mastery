@@ -90,4 +90,8 @@ class MapCoreCubit extends Cubit<MapCoreState> {
 
   /// Re-runs the full initialisation flow — used after returning from settings.
   Future<void> retryInitialization() => initialize();
+
+  void toggleTraffic() {
+    emit(state.copyWith(trafficEnabled: !state.trafficEnabled));
+  }
 }

@@ -6,6 +6,7 @@ import '../../../core/constants/app_constants.dart';
 import '../data/data_sources/google_maps_remote_data_source.dart';
 import '../data/data_sources/trip_firestore_data_source.dart';
 import '../data/repositories/map_repository.dart';
+import '../data/models/place_details_model.dart';
 import '../data/repositories/tracking_repository.dart';
 import '../logic/directions/directions_cubit.dart';
 import '../logic/live_tracking/live_tracking_cubit.dart';
@@ -16,6 +17,8 @@ import 'components/map_view_canvas.dart';
 import 'components/map_search_bar_header.dart';
 import 'components/search_autocomplete_overlay.dart';
 import 'components/place_detail_bottom_sheet.dart';
+import 'components/directions_selection_modal.dart';
+import 'components/map_floating_action_buttons.dart';
 
 class MapMasteryScreen extends StatelessWidget {
   const MapMasteryScreen({super.key});
@@ -44,14 +47,12 @@ class MapMasteryScreen extends StatelessWidget {
         providers: [
           BlocProvider(create: (_) => MapCoreCubit()..initialize()),
           BlocProvider(
-            create: (context) => SearchPlacesCubit(
-              repository: context.read<MapRepository>(),
-            ),
+            create: (context) =>
+                SearchPlacesCubit(repository: context.read<MapRepository>()),
           ),
           BlocProvider(
-            create: (context) => DirectionsCubit(
-              repository: context.read<MapRepository>(),
-            ),
+            create: (context) =>
+                DirectionsCubit(repository: context.read<MapRepository>()),
           ),
           BlocProvider(
             create: (context) => LiveTrackingCubit(
@@ -72,7 +73,8 @@ class _MapMasteryBody extends StatefulWidget {
   State<_MapMasteryBody> createState() => _MapMasteryBodyState();
 }
 
-class _MapMasteryBodyState extends State<_MapMasteryBody> with WidgetsBindingObserver {
+class _MapMasteryBodyState extends State<_MapMasteryBody>
+    with WidgetsBindingObserver {
   bool _wentToSettings = false;
   bool _isBottomSheetOpen = false;
 
@@ -106,12 +108,15 @@ class _MapMasteryBodyState extends State<_MapMasteryBody> with WidgetsBindingObs
     // We use a BlocConsumer here to handle navigation side-effects (like opening bottom sheets)
     // exclusively in the listener, while the builder manages the actual UI rendering.
     return BlocConsumer<MapCoreCubit, MapCoreState>(
-      listenWhen: (previous, current) => previous.focalPlace != current.focalPlace,
+      listenWhen: (previous, current) =>
+          previous.focalPlace != current.focalPlace,
       listener: (context, state) {
         // If the cubit emits a new focal place, open the details bottom sheet.
         if (state.focalPlace != null) {
+          // Prevent opening if a route is active
+          if (context.read<DirectionsCubit>().state.activeRoute != null) return;
           if (_isBottomSheetOpen) {
-             Navigator.of(context).pop();
+            Navigator.of(context).pop();
           }
           _isBottomSheetOpen = true;
           // Present the BottomSheet natively, avoiding messy internal Stack states.
@@ -119,7 +124,40 @@ class _MapMasteryBodyState extends State<_MapMasteryBody> with WidgetsBindingObs
             context: context,
             isScrollControlled: true,
             barrierColor: Colors.transparent,
-            builder: (_) => PlaceDetailBottomSheet(place: state.focalPlace!),
+            builder: (_) => PlaceDetailBottomSheet(
+              place: state.focalPlace!,
+              onGetDirections: () {
+                final dirCubit = context.read<DirectionsCubit>();
+                dirCubit.setDestination(state.focalPlace!);
+                
+                final currentPos = context.read<MapCoreCubit>().state.currentPosition;
+                if (currentPos != null) {
+                  dirCubit.setOrigin(
+                    PlaceDetailsModel(
+                      id: 'current_location',
+                      name: 'Your location',
+                      coordinate: currentPos,
+                      address: 'Your location',
+                    ),
+                  );
+                }
+                
+                Navigator.of(context).pop(); // Pops the place details sheet
+                showModalBottomSheet(
+                  context:
+                      context, // Uses the MapMasteryScreen's stable context
+                  isScrollControlled: true,
+                  backgroundColor: Colors.transparent,
+                  builder: (_) => MultiBlocProvider(
+                    providers: [
+                      BlocProvider.value(value: context.read<DirectionsCubit>()),
+                      BlocProvider.value(value: context.read<SearchPlacesCubit>()),
+                    ],
+                    child: const DirectionsSelectionModal(fetchRoutesOnInit: true),
+                  ),
+                );
+              },
+            ),
           ).whenComplete(() {
             if (!context.mounted) return;
             _isBottomSheetOpen = false;
@@ -145,6 +183,8 @@ class _MapMasteryBodyState extends State<_MapMasteryBody> with WidgetsBindingObs
                 MapViewCanvas(),
                 MapSearchBarHeader(),
                 SearchAutocompleteOverlay(),
+                MapFloatingActionButtons(),
+
               ],
             ),
           );
@@ -155,41 +195,42 @@ class _MapMasteryBodyState extends State<_MapMasteryBody> with WidgetsBindingObs
           body: switch (state.status) {
             MapCoreStatus.initial ||
             MapCoreStatus.checkingPermission ||
-            MapCoreStatus.loading =>
-              const Center(child: CircularProgressIndicator()),
+            MapCoreStatus.loading => const Center(
+              child: CircularProgressIndicator(),
+            ),
             MapCoreStatus.serviceDisabled => _RecoveryMessage(
-                icon: Icons.location_disabled,
-                message:
-                    'Location services are disabled.\nPlease enable them in Settings.',
-                action: 'Open Settings',
-                onAction: () => _openSettings(
-                  () => context.read<MapCoreCubit>().openLocationSettings(),
-                ),
+              icon: Icons.location_disabled,
+              message:
+                  'Location services are disabled.\nPlease enable them in Settings.',
+              action: 'Open Settings',
+              onAction: () => _openSettings(
+                () => context.read<MapCoreCubit>().openLocationSettings(),
               ),
+            ),
             MapCoreStatus.permissionDenied => _RecoveryMessage(
-                icon: Icons.location_off,
-                message:
-                    'Location permission was denied.\nTap below to grant access.',
-                action: 'Retry',
-                onAction: () =>
-                    context.read<MapCoreCubit>().retryInitialization(),
-              ),
+              icon: Icons.location_off,
+              message:
+                  'Location permission was denied.\nTap below to grant access.',
+              action: 'Retry',
+              onAction: () =>
+                  context.read<MapCoreCubit>().retryInitialization(),
+            ),
             MapCoreStatus.permissionPermanentlyDenied => _RecoveryMessage(
-                icon: Icons.lock,
-                message:
-                    'Location permission is permanently denied.\nOpen App Settings to grant access.',
-                action: 'Open App Settings',
-                onAction: () => _openSettings(
-                  () => context.read<MapCoreCubit>().openAppSettings(),
-                ),
+              icon: Icons.lock,
+              message:
+                  'Location permission is permanently denied.\nOpen App Settings to grant access.',
+              action: 'Open App Settings',
+              onAction: () => _openSettings(
+                () => context.read<MapCoreCubit>().openAppSettings(),
               ),
+            ),
             MapCoreStatus.failure => _RecoveryMessage(
-                icon: Icons.error_outline,
-                message: state.errorMessage ?? 'An unknown error occurred.',
-                action: 'Retry',
-                onAction: () =>
-                    context.read<MapCoreCubit>().retryInitialization(),
-              ),
+              icon: Icons.error_outline,
+              message: state.errorMessage ?? 'An unknown error occurred.',
+              action: 'Retry',
+              onAction: () =>
+                  context.read<MapCoreCubit>().retryInitialization(),
+            ),
             MapCoreStatus.ready => const SizedBox.shrink(),
           },
         );

@@ -123,6 +123,7 @@ class _MapViewCanvasState extends State<MapViewCanvas> {
           initialCameraPosition: startPosition,
           mapType: MapType.normal,
           myLocationEnabled: true,
+                  trafficEnabled: context.select((MapCoreCubit c) => c.state.trafficEnabled),
           myLocationButtonEnabled: true,
           zoomControlsEnabled: false,
           markers: markers,

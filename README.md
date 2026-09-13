@@ -129,9 +129,16 @@ A production-ready MVVM/Cubit-based module demonstrating advanced patterns: resi
 
 The existing learning demos remain intact. We are currently implementing a new Cubit/MVVM-based Map Mastery module intended for production-level stability. It covers permission recovery, traffic and POIs, debounced place search, multi-modal routing, Firestore driver tracking, and remote trip viewing for Android and iOS.
 
-**Status: Phase 3 Completed** ✅
+**Status: Phase 4 Completed** ✅
 - **Phase 1 & 2 (Foundation & Core):** Firebase and MVVM project structure initialized, immutable models and Repository/DataSource stubs created, and robust location permission recovery flow implemented using purely reactive BLoC/Cubit state management.
 - **Phase 3 (Discovery):** Implemented debounced Google Places autocomplete search, dynamic full-screen overlay for search predictions, and rich Point of Interest (POI) bottom sheet details driven by reverse-geocoding place IDs on map gestures.
+- **Phase 4 (Routing):** Implemented multi-modal directions (Driving, Transit, Walking, Two-Wheeler), active route polyline rendering, smart floating action button state management, and real-time route metrics display.
+
+> [!NOTE]
+> **Map Tap vs. Place Search**
+> The `google_maps_flutter` plugin does not natively support capturing the exact Place ID of built-in points of interest (POIs) when tapped. Long-pressing the map canvas utilizes the Reverse Geocoding API, which resolves to the *nearest street address or generic point*. 
+> For exact POI details (like a specific university, restaurant, or business), please use the **Place Search (Autocomplete)** feature at the top of the screen.
+
 
 ---
 

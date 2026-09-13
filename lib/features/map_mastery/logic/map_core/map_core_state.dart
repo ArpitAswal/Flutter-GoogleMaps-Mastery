@@ -36,6 +36,7 @@ class MapCoreState {
   final PlaceDetailsModel? focalPlace;
   final CameraCommand? cameraCommand;
   final String? errorMessage;
+  final bool trafficEnabled;
 
   const MapCoreState({
     this.status = MapCoreStatus.initial,
@@ -43,6 +44,7 @@ class MapCoreState {
     this.focalPlace,
     this.cameraCommand,
     this.errorMessage,
+    this.trafficEnabled = false,
   });
 
   MapCoreState copyWith({
@@ -51,6 +53,7 @@ class MapCoreState {
     PlaceDetailsModel? focalPlace,
     CameraCommand? cameraCommand,
     String? errorMessage,
+    bool? trafficEnabled,
     bool clearFocalPlace = false,
     bool clearCameraCommand = false,
     bool clearError = false,
@@ -62,6 +65,7 @@ class MapCoreState {
       cameraCommand:
           clearCameraCommand ? null : (cameraCommand ?? this.cameraCommand),
       errorMessage: clearError ? null : (errorMessage ?? this.errorMessage),
+      trafficEnabled: trafficEnabled ?? this.trafficEnabled,
     );
   }
 
@@ -74,9 +78,10 @@ class MapCoreState {
           currentPosition == other.currentPosition &&
           focalPlace == other.focalPlace &&
           cameraCommand == other.cameraCommand &&
-          errorMessage == other.errorMessage;
+          errorMessage == other.errorMessage &&
+          trafficEnabled == other.trafficEnabled;
 
   @override
   int get hashCode => Object.hash(
-        status, currentPosition, focalPlace, cameraCommand, errorMessage);
+        status, currentPosition, focalPlace, cameraCommand, errorMessage, trafficEnabled);
 }

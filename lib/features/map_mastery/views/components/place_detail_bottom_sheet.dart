@@ -5,8 +5,9 @@ import '../../data/models/place_details_model.dart';
 /// It renders dynamic elements conditionally (e.g., hiding rating/phone if null).
 class PlaceDetailBottomSheet extends StatelessWidget {
   final PlaceDetailsModel place;
+  final VoidCallback onGetDirections;
 
-  const PlaceDetailBottomSheet({super.key, required this.place});
+  const PlaceDetailBottomSheet({super.key, required this.place, required this.onGetDirections});
 
   @override
   Widget build(BuildContext context) {
@@ -72,12 +73,7 @@ class PlaceDetailBottomSheet extends StatelessWidget {
           SizedBox(
             width: double.infinity,
             child: FilledButton(
-              onPressed: () {
-                // TODO Phase 4: Implement directions and routing flow.
-                ScaffoldMessenger.of(context).showSnackBar(
-                  const SnackBar(content: Text('Directions coming in Phase 4')),
-                );
-              },
+              onPressed: onGetDirections,
               child: const Text('Get Directions'),
             ),
           ),

@@ -27,9 +27,11 @@ class DirectionsCubit extends Cubit<DirectionsState> {
 
   /// Swaps origin and destination atomically.
   void swapOriginDestination() {
+    if (state.origin == null || state.destination == null) return;
+    final tempOrigin  = state.origin;
     emit(state.copyWith(
       origin: state.destination,
-      destination: state.origin,
+      destination: tempOrigin,
       clearError: true,
     ));
   }
